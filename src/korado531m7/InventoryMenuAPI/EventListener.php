@@ -10,6 +10,7 @@ use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\event\Listener;
 use pocketmine\event\server\DataPacketReceiveEvent;
+use pocketmine\item\Item;
 use pocketmine\network\mcpe\protocol\ContainerClosePacket;
 use pocketmine\plugin\PluginBase;
 
@@ -27,7 +28,7 @@ class EventListener implements Listener{
                 $inv = $action->getInventory();
                 if($inv instanceof MenuInventory){
                     $player = $event->getTransaction()->getSource();
-                    $item = $action->getSourceItem();
+                    $item = $action->getSourceItem()->getId() === Item::AIR ? $action->getTargetItem() : $action->getSourceItem();
                     $callable = $inv->getClickedCallable();
                     if($callable !== null){
                         $callable($player, $inv, $item);
