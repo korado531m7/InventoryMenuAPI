@@ -2,13 +2,13 @@
 namespace korado531m7\InventoryMenuAPI;
 
 use korado531m7\InventoryMenuAPI\inventory\MenuInventory;
-use korado531m7\InventoryMenuAPI\utils\TemporaryData;
-
+use korado531m7\InventoryMenuAPI\utils\Session;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 
 class InventoryMenu extends PluginBase implements InventoryType{
-    private static $tmpInventory = [];
+    /** @var Session[] */
+    private static $sessions = [];
     private static $pluginbase = null;
     
     public function onEnable(){
@@ -22,52 +22,40 @@ class InventoryMenu extends PluginBase implements InventoryType{
      * @param PluginBase $plugin
      */
     public static function register(PluginBase $plugin) : void{
-        if(self::$pluginbase === null){
-            self::$pluginbase = $plugin;
-            $plugin->getServer()->getPluginManager()->registerEvents(new EventListener(), $plugin);
+        if(self::$pluginbase !== null){
+            throw new \RuntimeException('Plugin base has been registered');
         }
+
+        self::$pluginbase = $plugin;
+        $plugin->getServer()->getPluginManager()->registerEvents(new EventListener($plugin), $plugin);
     }
-    
+
     /**
-     * Create inventory instance
+     * Create Inventory
      *
-     * @param int $type
+     * @param string $type
      *
-     * @return InventoryMenu
+     * @return MenuInventory
+     * @throws \ReflectionException
      */
     public static function createInventory(string $type = self::INVENTORY_TYPE_CHEST) : MenuInventory{
+        $class = new \ReflectionClass($type);
+        if(!is_a($type, MenuInventory::class, true) || $class->isAbstract()){
+            throw new \ReflectionException('Class ' . $class->getName() . ' is not valid');
+        }
         return new $type();
     }
-    
-    /**
-     * Check whether player is opening inventory menu
-     *
-     * @param  Player $player
-     * @return bool
-     */
-    public static function isOpeningInventoryMenu(Player $player) : bool{
-        return array_key_exists($player->getName(), self::$tmpInventory);
+
+    public static function newSession(Player $player, Session $session) : void{
+        self::$sessions[$player->getId()] = $session;
     }
-    
-    /**
-     * this function is for internal use only. Don't call this
-     */
-    public static function unsetData(Player $player){
-        unset(self::$tmpInventory[$player->getName()]);
+
+    public static function getSession(Player $player) : ?Session{
+        return self::$sessions[$player->getId()] ?? null;
     }
-    
-    /**
-     * this function is for internal use only. Don't call this
-     */
-    public static function getData(Player $player) : ?TemporaryData{
-        return self::$tmpInventory[$player->getName()] ?? null;
-    }
-    
-    /**
-     * this function is for internal use only. Don't call this
-     */
-    public static function setData(Player $player, TemporaryData $temp){
-        self::$tmpInventory[$player->getName()] = $temp;
+
+    public static function resetSession(Player $player) : void{
+        unset(self::$sessions[$player->getId()]);
     }
     
     /**

@@ -1,12 +1,12 @@
 <?php
-namespace korado531m7\InventoryMenuAPI\inventory; 
 
-use pocketmine\block\BlockIds;
+
+namespace korado531m7\InventoryMenuAPI\inventory;
+
+
+use pocketmine\block\Block;
 
 class DispenserInventory extends MenuInventory{
-    public function __construct(){
-        parent::__construct();
-    }
     
     public function getDefaultSize() : int{
         return 9;
@@ -16,7 +16,8 @@ class DispenserInventory extends MenuInventory{
         return self::DISPENSER;
     }
     
-    public function getBlockId() : int{
-        return BlockIds::DISPENSER;
+    public function getBlock() : Block{
+        return Block::get(Block::DISPENSER);
     }
+
 }

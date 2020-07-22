@@ -1,13 +1,11 @@
 <?php
 namespace korado531m7\InventoryMenuAPI\inventory; 
 
-use pocketmine\block\BlockIds;
+
+use pocketmine\block\Block;
 
 class ChestInventory extends MenuInventory{
-    public function __construct(){
-        parent::__construct();
-    }
-    
+
     public function getDefaultSize() : int{
         return 27;
     }
@@ -15,8 +13,9 @@ class ChestInventory extends MenuInventory{
     public function getNetworkType() : int{
         return self::CONTAINER;
     }
-    
-    public function getBlockId() : int{
-        return BlockIds::CHEST;
+
+    public function getBlock() : Block{
+        return Block::get(Block::CHEST);
     }
+
 }

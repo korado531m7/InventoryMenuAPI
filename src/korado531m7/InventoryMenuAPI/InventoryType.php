@@ -2,16 +2,16 @@
 namespace korado531m7\InventoryMenuAPI;
 
 use korado531m7\InventoryMenuAPI\inventory\{AnvilInventory,
-                                            BeaconInventory,
-                                            BrewingStandInventory,
-                                            ChestInventory,
-                                            DispenserInventory,
-                                            DoubleChestInventory,
-                                            DropperInventory,
-                                            EnchantingTableInventory,
-                                            HopperInventory,
-                                            VillagerInventory
-                                            };
+    BeaconInventory,
+    BrewingStandInventory,
+    ChestInventory,
+    DispenserInventory,
+    DoubleChestInventory,
+    DropperInventory,
+    EnchantingTableInventory,
+    HopperInventory,
+    VillagerInventory
+};
 
 interface InventoryType{
     const INVENTORY_TYPE_ANVIL = AnvilInventory::class;

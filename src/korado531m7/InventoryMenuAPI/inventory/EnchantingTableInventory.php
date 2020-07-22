@@ -1,12 +1,12 @@
 <?php
+
+
 namespace korado531m7\InventoryMenuAPI\inventory; 
 
-use pocketmine\block\BlockIds;
+
+use pocketmine\block\Block;
 
 class EnchantingTableInventory extends MenuInventory{
-    public function __construct(){
-        parent::__construct();
-    }
     
     public function getDefaultSize() : int{
         return 5;
@@ -16,7 +16,8 @@ class EnchantingTableInventory extends MenuInventory{
         return self::ENCHANTMENT;
     }
     
-    public function getBlockId() : int{
-        return BlockIds::ENCHANTING_TABLE;
+    public function getBlock() : Block{
+        return Block::get(Block::ENCHANTMENT_TABLE);
     }
+
 }

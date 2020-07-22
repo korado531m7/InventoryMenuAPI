@@ -1,8 +1,15 @@
 # InventoryMenuAPI
-**Advanced Inventory Menu API for PocketMine**
+**Fake and Menu Inventory API for PocketMine**
+
 
 ### Installation
 You can download converted to phar version file from [here](https://poggit.pmmp.io/ci/korado531m7/InventoryMenuAPI/InventoryMenuAPI)
+
+
+### Know Issues
+* Villager Inventory doesn't work correctly
+* Can't show the inventories successively
+
 
 ### Preparation
 Before using, you need to import class
@@ -33,9 +40,9 @@ $inv = InventoryMenu::createInventory();
 ```
 (you don't have to write use sentence ChestInventory if you use createInventory function)
 
-then, call send function
+then, call send function with addWindow from Player
 ```php
-$inv->send($player); //$player is player object
+$player->addWindow($inv); //$player is player object
 ```
 
 ___
@@ -84,75 +91,44 @@ These constants are written in `korado531m7\InventoryMenuAPI\InventoryType`
 
 ___
 
-**HOW TO CLOSE INVENTORY MENU**
-
-To close inventory menu, use doClose function
-```php
-$inv->doClose($player); //$player is player object
-```
-
-___
-
 **Set callback**
 
-you can set callable and will be called when player clicked an item or closed inventory.
-to set callback, use setCallable()
-the parameters in function is player object, inventory, clicked item
+you can set callable and will be called when player clicked an item and closed inventory.
+
+To call callable when clicked something, use `setClickedCallable`
 ```php
-//Ex
-$inv->setCallable(function($player, $inventory, $item){
-    $player->sendMessage('You clicked '.$item->getName());
-});
+public function setClickedCallable(Closure $closure) : void;
+
+//Ex: function(Player $player, MenuInventory $inventory, Item $item) : void{
+    $player->sendMessage('Clicked: ' . $item->getName());
+}
 ```
-you can select whether clicked item or closed inventory in second parameter.
-constant is in `korado531m7\InventoryMenuAPI\inventory\MenuInventory`
+
+To call callable when closed inventory, use `setClosedCallable`
+```php
+public function setClickedCallable(Closure $closure) : void;
+
+//Ex: function(Player $player, MenuInventory $inventory) : void{
+    $player->sendMessage('Closed');
+}
 ```
-const CALLBACK_CLICKED = 0;
-const CALLBACK_CLOSED = 1;
-```
+
 
 ___
 
-**Set task**
+**Task features has been removed**
 
-Since 3.0.0, you can set taskscheduler to inventory so that you can edit an inventory in spite of opening inventory.
-it will be started when player opened an inventory and will be cancelled when closed an inventory
-in version 3.0.0, you can use SCHEDULER_REPEATING.
-first, define task like
+but, you can share all inventories with some people. That is to say you can rewrite items while player is opening.
+
+Here's sample
 ```php
-use korado531m7\InventoryMenuAPI\task\InventoryTask;
-class TestTask extends InventoryTask{
-    public function __construct(){
-    }
-    
-    public function onRun(int $currentTick){
-        $this->getInventory()->setItem(mt_rand(0, 5), Item::get(276));
-    }
-}
-```
-You can get inventory with getInventory()
+/** @var ChestInventory $inv */
+$player->addWindow($inv);
 
-then, set this testtask class to Task class in korado531m7\InventoryMenuAPI\task\Task;
-```php
-$inventoryTask = new TestTask();
-$task = new Task();
-$task->setInventoryTask($inventoryTask); //inventorytask class
-$task->setPeriod(20); //tick
-$task->setType(Task::TASK_REPEATING); //type
+$schueduler->scheduleDelayedTask(new ClosureTask(function() use ($inv) : void{
+    $inv->setItem(5, Item::get(Item::STONE));
+}), 20 * 20); //it will be overwritten the inventory
 ```
-to set another type, use these constant
-```
-const TASK_NORMAL = 0;
-const TASK_REPEATING = 1;
-const TASK_DELAYED = 2;
-const TASK_DELAYED_REPEATING = 3;
-```
-
-to set task, use setTask()
-```php
-$inv->setTask($task); //$task must be korado531m7\InventoryMenuAPI\task\Task
-```
-
 ___
 
 **SET RECIPE TO VILLAGER INVENTORY**
@@ -173,7 +149,6 @@ $recipe->setResult(Item::get(Item::ENDER_EYE));       //result item can trade fr
 $villagerInventory->addRecipe($recipe); //add recipe to villager inventory
 $villagerInventory->send($player); //send to player
 ```
-NOTE: VillagerInventory doesn't support setTask
 
 ___
 
@@ -181,10 +156,10 @@ ___
 You can write code in a row.
 ```php
 //Ex1
-(new ChestInventory())->setName('Test')->send($player);
+$player->addWindow(new ChestInventory());
 
 //Ex2
-InventoryMenu::createInventory()->setName('Test')->send($player);
+$player->addWindow(InventoryMenu::createInventory()->setName('Test'));
 ```
 
 ___
@@ -203,8 +178,6 @@ use korado531m7\InventoryMenuAPI\event\InventoryClickEvent;
 * `getPlayer()`          - Return Player object who clicked
 * `getItem()`            - Return Item which player clicked
 * `getInventory()`       - Return Inventory
-* `getAction()`          - Return NetworkInventoryAction
-* `getTransactionType()` - Return transaction type
 
 ___
 

@@ -1,175 +1,166 @@
 <?php
-namespace korado531m7\InventoryMenuAPI\inventory; 
+
+
+namespace korado531m7\InventoryMenuAPI\inventory;
+
 
 use korado531m7\InventoryMenuAPI\InventoryMenu;
-use korado531m7\InventoryMenuAPI\task\InventorySendTask;
-use korado531m7\InventoryMenuAPI\task\Task;
 use korado531m7\InventoryMenuAPI\utils\InventoryMenuUtils;
-use korado531m7\InventoryMenuAPI\utils\TemporaryData;
-
-use pocketmine\Player;
+use korado531m7\InventoryMenuAPI\utils\Session;
 use pocketmine\block\Block;
-use pocketmine\inventory\BaseInventory;
+use pocketmine\entity\Entity;
 use pocketmine\inventory\ContainerInventory;
+use pocketmine\item\Item;
 use pocketmine\math\Vector3;
+use pocketmine\nbt\NetworkLittleEndianNBTStream;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
+use pocketmine\network\mcpe\protocol\ContainerOpenPacket;
 use pocketmine\network\mcpe\protocol\types\WindowTypes;
+use pocketmine\Player;
+use pocketmine\scheduler\ClosureTask;
+use pocketmine\tile\Nameable;
+use pocketmine\utils\Utils;
+
 
 abstract class MenuInventory extends ContainerInventory implements WindowTypes{
-    const CALLBACK_CLICKED = 0;
-    const CALLBACK_CLOSED = 1;
-    
-    protected $position;
-    
-    private $task = null;
-    
-    private $closeCallable = null;
-    private $clickCallable = null;
-    
+    /** @var \Closure */
+    private $clickedCallable;
+    /** @var \Closure */
+    private $closedCallable;
+    /** @var bool */
     private $readonly = true;
-    
+
     public function __construct(){
-        BaseInventory::__construct([], 0, '');
-        $this->setName($this->getBlock()->getName());
-        $this->setSize($this->getDefaultSize());
+        $this->title = $this->getBlock()->getName();
+        parent::__construct(new Vector3());
     }
-    
+
     /**
-     * Set name to inventory
-     *
-     * @param string $title
+     * @param string $name
      */
-    public function setName(string $title){
-        $this->title = $title;
+    public function setName(string $name) : void{
+        $this->title = $name;
     }
-    
-    /**
-     * Will be called when player clicked item
-     *
-     * @param callable       $callable
-     * @param int            $type
-     * 
-     * @return MenuInventory
-     */
-    public function setCallable(callable $callable, int $type = self::CALLBACK_CLICKED){
-        if($type === self::CALLBACK_CLICKED)
-            $this->clickCallable = $callable;
-        elseif($type === self::CALLBACK_CLOSED)
-            $this->closeCallable = $callable;
-        
-        return $this;
-    }
-    
-    /**
-     * @param Task $task
-     */
-    public function setTask(Task $task){
-        $this->task = $task;
-        return $this;
-    }
-    
-     /**
-     * Allow to trade between player and inventory
-     *
-     * @param bool $value
-     *
-     * @return InventoryMenu
-     */
-    public function setReadonly(bool $value){
-        $this->readonly = $value;
-        return $this;
-    }
-    
-    /**
-     * This is for internal only
-     */
-    private function setPosition(Vector3 $pos){
-        $this->holder = $pos;
-    }
-    
-    /**
-     * @return bool
-     */
-    public function isReadonly() : bool{
-        return $this->readonly;
-    }
-    
-    /**
-     * Get callable
-     *
-     * @param int $type
-     *
-     * @return callable|null
-     */
-    public function getCallable(int $type) : ?callable{
-        if($type === self::CALLBACK_CLICKED)
-            return $this->clickCallable;
-        elseif($type === self::CALLBACK_CLOSED)
-            return $this->closeCallable;
-    }
-    
-    /**
-     * @return Task|null
-     */
-    public function getTask() : ?Task{
-        return $this->task;
-    }
-    
-    /**
-     * @return Vector3
-     */
-    public function getPosition() : Vector3{
-        return $this->holder;
-    }
-    
-    /**
-     * @return Block
-     */
-    public function getBlock() : Block{
-        return Block::get($this->getBlockId());
-    }
-    
-    /**
-     * @return bool
-     */
-    public function isDouble() : bool{
-        return false;
-    }
-    
+
     /**
      * @return string
      */
     public function getName() : string{
         return $this->title;
     }
-    
-    abstract public function getBlockId() : int;
-    
+
     /**
-     * To send inventory, use this function
-     *
-     * @param Player $player
+     * @param bool $readonly
      */
-    public function send(Player $player){ //TODO: queue
-        $inventory = clone $this;
-        $pos = clone $player->floor()->add(0, 4);
-        $inventory->setPosition($pos);
-        $tmp = new TemporaryData();
-        $tmp->setMenuInventory($inventory);
-        InventoryMenu::getPluginBase()->getScheduler()->scheduleDelayedTask(new InventorySendTask($player, $tmp), 4);
+    public function setReadonly(bool $readonly) : void{
+        $this->readonly = $readonly;
     }
-    
-    public function doClose(Player $player) : void{
-        if(!InventoryMenu::isOpeningInventoryMenu($player)) return;
-        $tmpData = InventoryMenu::getData($player);
-        $inventory = $tmpData->getMenuInventory();
-        $task = $inventory->getTask();
-        if($task instanceof Task){
-            InventoryMenu::getPluginBase()->getScheduler()->cancelTask($task->getInventoryTask()->getTaskId());
+
+    /**
+     * @return bool
+     */
+    public function isReadonly() : bool{
+        return $this->readonly;
+    }
+
+    /**
+     * Called when player clicked item
+     *
+     * @param \Closure $callable
+     */
+    public function setClickedCallable(\Closure $callable) : void{
+        Utils::validateCallableSignature(function(Player $player, MenuInventory $inventory, Item $item) : void{}, $callable);
+
+        $this->clickedCallable = $callable;
+    }
+
+    /**
+     * @return \Closure|null
+     */
+    public function getClickedCallable() : ?\Closure{
+        return $this->clickedCallable;
+    }
+
+    /**
+     * Called when player closed this inventory
+     *
+     * @param \Closure $callable
+     */
+    public function setClosedCallable(\Closure $callable) : void{
+        Utils::validateCallableSignature(function(Player $player, MenuInventory $inventory) : void{}, $callable);
+
+        $this->closedCallable = $callable;
+    }
+
+    /**
+     * @return \Closure|null
+     */
+    public function getClosedCallable() : ?\Closure{
+        return $this->closedCallable;
+    }
+
+    public function getAdditionCompoundTags(CompoundTag $tag, Vector3 $pos) : void{
+
+    }
+
+    public function placeAdditionalBlocks(Player $player, Vector3 $pos) : void{
+
+    }
+
+    public function breakAdditionalBlocks(Player $player, Vector3 $pos) : void{
+
+    }
+
+    abstract public function getBlock() : Block;
+
+    public function onOpen(Player $who) : void{
+        parent::onOpen($who);
+        $session = new Session($who->add(0, 4));
+        InventoryMenu::newSession($who, $session);
+        $holder = $session->getPosition();
+        InventoryMenuUtils::sendFakeBlock($who, $holder, $this->getBlock());
+        $this->placeAdditionalBlocks($who, $holder);
+
+        InventoryMenu::getPluginBase()->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($who, $holder) : void{
+            $tags = new CompoundTag();
+            $tags->setString(Nameable::TAG_CUSTOM_NAME, $this->getName());
+
+            $writer = new NetworkLittleEndianNBTStream();
+            $pk = new BlockActorDataPacket();
+            $pk->x = $holder->getFloorX();
+            $pk->y = $holder->getFloorY();
+            $pk->z = $holder->getFloorZ();
+            $pk->namedtag = $writer->write($tags);
+            $who->dataPacket($pk);
+            $this->getAdditionCompoundTags($tags, $holder);
+
+            $pk = new ContainerOpenPacket();
+            $pk->windowId = $who->getWindowId($this);
+            $pk->type = $this->getNetworkType();
+
+            $pk->x = $pk->y = $pk->z = 0;
+            $pk->entityUniqueId = -1;
+
+            if($holder instanceof Entity){
+                $pk->entityUniqueId = $holder->getId();
+            }else{
+                $pk->x = $holder->getFloorX();
+                $pk->y = $holder->getFloorY();
+                $pk->z = $holder->getFloorZ();
+            }
+            $who->dataPacket($pk);
+            $this->sendContents($who);
+        }), 3);
+    }
+
+    public function onClose(Player $who) : void{
+        parent::onClose($who);
+        $session = InventoryMenu::getSession($who);
+        if($session instanceof Session){
+            InventoryMenuUtils::removeBlock($who, $session->getPosition());
+            $this->breakAdditionalBlocks($who, $session->getPosition());
+            InventoryMenu::resetSession($who);
         }
-        $player->removeWindow($inventory);
-        InventoryMenuUtils::removeBlock($player, $inventory->getPosition(), $inventory->isDouble());
-        if($this->isReadonly())
-            $player->getInventory()->setContents($tmpData->getItems());
-        InventoryMenu::unsetData($player);
     }
 }
