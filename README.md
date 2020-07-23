@@ -6,9 +6,8 @@
 You can download converted to phar version file from [here](https://poggit.pmmp.io/ci/korado531m7/InventoryMenuAPI/InventoryMenuAPI)
 
 
-### Know Issues
+### Known Issues
 * Villager Inventory doesn't work correctly
-* Can't show the inventories successively
 
 
 ### Preparation
@@ -58,9 +57,9 @@ ___
 
 **RENAMING INVENTORY MENU NAME**
 
-To change inventory name, call setName function
+To change inventory name, call setTitle function
 ```php
-$inv->setName('WRITE NAME HERE');
+$inv->setTitle('WRITE NAME HERE');
 ```
 
 ___
@@ -116,7 +115,7 @@ public function setClickedCallable(Closure $closure) : void;
 
 ___
 
-**Task features has been removed**
+**Task feature has been removed**
 
 but, you can share all inventories with some people. That is to say you can rewrite items while player is opening.
 

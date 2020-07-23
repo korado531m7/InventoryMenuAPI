@@ -5,6 +5,7 @@ use korado531m7\InventoryMenuAPI\inventory\MenuInventory;
 use korado531m7\InventoryMenuAPI\event\InventoryClickEvent;
 use korado531m7\InventoryMenuAPI\event\InventoryCloseEvent;
 
+use korado531m7\InventoryMenuAPI\task\CallClosureTask;
 use korado531m7\InventoryMenuAPI\utils\Session;
 use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
@@ -29,10 +30,6 @@ class EventListener implements Listener{
                 if($inv instanceof MenuInventory){
                     $player = $event->getTransaction()->getSource();
                     $item = $action->getSourceItem()->getId() === Item::AIR ? $action->getTargetItem() : $action->getSourceItem();
-                    $callable = $inv->getClickedCallable();
-                    if($callable !== null){
-                        $callable($player, $inv, $item);
-                    }
                     $ev = new InventoryClickEvent($player, $item, $inv);
                     $ev->call();
                     if($inv->isReadonly()){
@@ -42,6 +39,10 @@ class EventListener implements Listener{
                         }
                         $action->getInventory()->removeItem($item);
                         $event->setCancelled();
+                    }
+                    $callable = $inv->getClickedCallable();
+                    if($callable !== null){
+                        $this->pluginBase->getScheduler()->scheduleDelayedTask(new CallClosureTask($callable, $player, $inv, $item), 3);
                     }
                 }
             }
@@ -61,7 +62,7 @@ class EventListener implements Listener{
                 }
                 $callable = $inventory->getClosedCallable();
                 if($callable !== null){
-                    $callable($player, $inventory);
+                    $this->pluginBase->getScheduler()->scheduleDelayedTask(new CallClosureTask($callable, $player, $inventory), 3);
                 }
             }
         }

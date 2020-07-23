@@ -8,6 +8,10 @@ use pocketmine\block\Block;
 
 class AnvilInventory extends MenuInventory{
 
+    public function getName() : string{
+        return 'AnvilInventory';
+    }
+
     public function getDefaultSize() : int{
         return 3;
     }

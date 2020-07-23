@@ -5,6 +5,9 @@ use korado531m7\InventoryMenuAPI\inventory\MenuInventory;
 use korado531m7\InventoryMenuAPI\utils\Session;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
+use ReflectionClass;
+use ReflectionException;
+use RuntimeException;
 
 class InventoryMenu extends PluginBase implements InventoryType{
     /** @var Session[] */
@@ -23,7 +26,7 @@ class InventoryMenu extends PluginBase implements InventoryType{
      */
     public static function register(PluginBase $plugin) : void{
         if(self::$pluginbase !== null){
-            throw new \RuntimeException('Plugin base has been registered');
+            throw new RuntimeException('Plugin base has been registered');
         }
 
         self::$pluginbase = $plugin;
@@ -36,12 +39,12 @@ class InventoryMenu extends PluginBase implements InventoryType{
      * @param string $type
      *
      * @return MenuInventory
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public static function createInventory(string $type = self::INVENTORY_TYPE_CHEST) : MenuInventory{
-        $class = new \ReflectionClass($type);
+        $class = new ReflectionClass($type);
         if(!is_a($type, MenuInventory::class, true) || $class->isAbstract()){
-            throw new \ReflectionException('Class ' . $class->getName() . ' is not valid');
+            throw new ReflectionException('Class ' . $class->getName() . ' is not valid');
         }
         return new $type();
     }

@@ -8,6 +8,10 @@ use pocketmine\block\Block;
 
 class DropperInventory extends MenuInventory{
 
+    public function getName() : string{
+        return 'DropperInventory';
+    }
+
     public function getDefaultSize() : int{
         return 9;
     }

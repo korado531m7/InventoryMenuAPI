@@ -31,7 +31,7 @@ class SendInventoryTask extends Task{
 
     public function onRun(int $currentTick){
         $tags = new CompoundTag();
-        $tags->setString(Nameable::TAG_CUSTOM_NAME, $this->inventory->getName());
+        $tags->setString(Nameable::TAG_CUSTOM_NAME, $this->inventory->getTitle());
 
         $writer = new NetworkLittleEndianNBTStream();
         $pk = new BlockActorDataPacket();

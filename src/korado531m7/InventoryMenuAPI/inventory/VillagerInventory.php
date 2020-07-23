@@ -9,9 +9,7 @@ use korado531m7\InventoryMenuAPI\utils\TradingMaterial;
 use pocketmine\block\Block;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
-use pocketmine\block\BlockIds;
 use pocketmine\entity\Entity;
-use pocketmine\entity\EntityIds;
 use pocketmine\item\Item;
 use pocketmine\nbt\NetworkLittleEndianNBTStream;
 use pocketmine\nbt\tag\CompoundTag;
@@ -33,9 +31,13 @@ class VillagerInventory extends MenuInventory{
         $this->position = $position;
         $this->eid = Entity::$entityCount++;
         $this->setReadonly(false);
-        $this->setName('Villager Inventory');
+        $this->setTitle('Villager Inventory');
     }
-    
+
+    public function getName() : string{
+        return 'VillagerInventory';
+    }
+
     public function addMaterial(TradingMaterial $recipe){
         $this->materials[] = $recipe;
     }
@@ -74,7 +76,7 @@ class VillagerInventory extends MenuInventory{
     private function sendVillager(Player $player){
         $pk = new AddActorPacket();
         $pk->entityRuntimeId = $this->eid;
-        $pk->type = AddActorPacket::LEGACY_ID_MAP_BC[EntityIds::VILLAGER];
+        $pk->type = AddActorPacket::LEGACY_ID_MAP_BC[Entity::VILLAGER];
         $pk->position = $this->position;
         $pk->metadata = [
             Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, 1 << Entity::DATA_FLAG_IMMOBILE],

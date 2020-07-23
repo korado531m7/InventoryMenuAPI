@@ -32,30 +32,32 @@ abstract class MenuInventory extends ContainerInventory implements WindowTypes{
     }
 
     /**
-     * @param string $name
+     * @param string $title
      */
-    public function setName(string $name) : void{
-        $this->title = $name;
+    final public function setTitle(string $title) : void{
+        $this->title = $title;
     }
 
     /**
-     * @return string
+     * @deprecated use setTitle
+     *
+     * @param string $name
      */
-    public function getName() : string{
-        return $this->title;
+    final public function setName(string $name) : void{
+        $this->title = $name;
     }
 
     /**
      * @param bool $readonly
      */
-    public function setReadonly(bool $readonly) : void{
+    final public function setReadonly(bool $readonly) : void{
         $this->readonly = $readonly;
     }
 
     /**
      * @return bool
      */
-    public function isReadonly() : bool{
+    final public function isReadonly() : bool{
         return $this->readonly;
     }
 
@@ -64,7 +66,7 @@ abstract class MenuInventory extends ContainerInventory implements WindowTypes{
      *
      * @param Closure $callable
      */
-    public function setClickedCallable(Closure $callable) : void{
+    final public function setClickedCallable(Closure $callable) : void{
         Utils::validateCallableSignature(function(Player $player, MenuInventory $inventory, Item $item) : void{}, $callable);
 
         $this->clickedCallable = $callable;
@@ -73,7 +75,7 @@ abstract class MenuInventory extends ContainerInventory implements WindowTypes{
     /**
      * @return Closure|null
      */
-    public function getClickedCallable() : ?Closure{
+    final public function getClickedCallable() : ?Closure{
         return $this->clickedCallable;
     }
 
@@ -82,7 +84,7 @@ abstract class MenuInventory extends ContainerInventory implements WindowTypes{
      *
      * @param Closure $callable
      */
-    public function setClosedCallable(Closure $callable) : void{
+    final public function setClosedCallable(Closure $callable) : void{
         Utils::validateCallableSignature(function(Player $player, MenuInventory $inventory) : void{}, $callable);
 
         $this->closedCallable = $callable;
@@ -91,7 +93,7 @@ abstract class MenuInventory extends ContainerInventory implements WindowTypes{
     /**
      * @return Closure|null
      */
-    public function getClosedCallable() : ?Closure{
+    final public function getClosedCallable() : ?Closure{
         return $this->closedCallable;
     }
 

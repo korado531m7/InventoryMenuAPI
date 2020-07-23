@@ -7,6 +7,10 @@ namespace korado531m7\InventoryMenuAPI\inventory;
 use pocketmine\block\Block;
 
 class BrewingStandInventory extends MenuInventory{
+
+    public function getName() : string{
+        return 'BrewingStandInventory';
+    }
     
     public function getDefaultSize() : int{
         return 5;

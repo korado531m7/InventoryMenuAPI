@@ -6,6 +6,10 @@ use pocketmine\block\Block;
 
 class ChestInventory extends MenuInventory{
 
+    public function getName() : string{
+        return 'ChestInventory';
+    }
+
     public function getDefaultSize() : int{
         return 27;
     }
