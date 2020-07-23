@@ -4,8 +4,8 @@ namespace korado531m7\InventoryMenuAPI;
 use korado531m7\InventoryMenuAPI\inventory\MenuInventory;
 use korado531m7\InventoryMenuAPI\event\InventoryClickEvent;
 use korado531m7\InventoryMenuAPI\event\InventoryCloseEvent;
-use korado531m7\InventoryMenuAPI\utils\InventoryMenuUtils;
 
+use korado531m7\InventoryMenuAPI\utils\Session;
 use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
 use pocketmine\event\Listener;
@@ -36,8 +36,11 @@ class EventListener implements Listener{
                     $ev = new InventoryClickEvent($player, $item, $inv);
                     $ev->call();
                     if($inv->isReadonly()){
+                        $session = InventoryMenu::getSession($player);
+                        if($session instanceof Session){
+                            $session->restoreBlock();
+                        }
                         $action->getInventory()->removeItem($item);
-                        InventoryMenuUtils::removeBlock($player, $player->add(0, 4)); //Can't use Player->removeWindow
                         $event->setCancelled();
                     }
                 }

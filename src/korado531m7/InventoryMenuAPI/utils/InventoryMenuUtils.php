@@ -1,6 +1,7 @@
 <?php
 namespace korado531m7\InventoryMenuAPI\utils;
 
+
 use pocketmine\Player;
 use pocketmine\block\Block;
 use pocketmine\math\Vector3;
@@ -21,18 +22,16 @@ class InventoryMenuUtils{
         $player->dataPacket($pk);
     }
     
-    public static function sendFakeBlock(Player $player, Vector3 $pos, Block $block){
+    public static function sendFakeBlock(Session $session, Vector3 $pos, Block $block){
+        $session->addBlock($session->getPlayer()->getLevel()->getBlock($pos));
+
         $pk = new UpdateBlockPacket();
         $pk->x = (int) $pos->x;
         $pk->y = (int) $pos->y;
         $pk->z = (int) $pos->z;
         $pk->flags = UpdateBlockPacket::FLAG_ALL;
         $pk->blockRuntimeId = $block->getRuntimeId();
-        $player->dataPacket($pk);
-    }
-    
-    public static function removeBlock(Player $player, Vector3 $pos){
-        self::sendFakeBlock($player, $pos, Block::get(Block::AIR));
+        $session->getPlayer()->dataPacket($pk);
     }
 
 }
