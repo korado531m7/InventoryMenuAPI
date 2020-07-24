@@ -5,59 +5,52 @@ namespace korado531m7\InventoryMenuAPI\task;
 
 
 use korado531m7\InventoryMenuAPI\inventory\MenuInventory;
-use pocketmine\entity\Entity;
-use pocketmine\math\Vector3;
+use korado531m7\InventoryMenuAPI\utils\Session;
 use pocketmine\nbt\NetworkLittleEndianNBTStream;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\BlockActorDataPacket;
 use pocketmine\network\mcpe\protocol\ContainerOpenPacket;
-use pocketmine\Player;
 use pocketmine\scheduler\Task;
 use pocketmine\tile\Nameable;
 
 class SendInventoryTask extends Task{
-    /** @var Player */
-    private $player;
     /** @var MenuInventory */
     private $inventory;
-    /** @var Vector3 */
-    private $pos;
+    /** @var Session */
+    private $session;
 
-    public function __construct(MenuInventory $inventory, Player $player, Vector3 $pos){
-        $this->player = $player;
+    public function __construct(MenuInventory $inventory, Session $session){
         $this->inventory = $inventory;
-        $this->pos = $pos;
+        $this->session = $session;
     }
 
     public function onRun(int $currentTick){
+        $player = $this->session->getPlayer();
+        $pos = $this->session->getPosition();
+        $eid = $this->session->getEid();
         $tags = new CompoundTag();
         $tags->setString(Nameable::TAG_CUSTOM_NAME, $this->inventory->getTitle());
 
         $writer = new NetworkLittleEndianNBTStream();
         $pk = new BlockActorDataPacket();
-        $pk->x = $this->pos->getFloorX();
-        $pk->y = $this->pos->getFloorY();
-        $pk->z = $this->pos->getFloorZ();
+        $pk->x = $pos->getX();
+        $pk->y = $pos->getY();
+        $pk->z = $pos->getZ();
         $pk->namedtag = $writer->write($tags);
-        $this->player->dataPacket($pk);
-        $this->inventory->getAdditionCompoundTags($tags, $this->pos);
+        $player->dataPacket($pk);
+        $this->inventory->getAdditionCompoundTags($tags, $pos);
 
         $pk = new ContainerOpenPacket();
-        $pk->windowId = $this->player->getWindowId($this->inventory);
+        $pk->windowId = $player->getWindowId($this->inventory);
         $pk->type = $this->inventory->getNetworkType();
-
-        $pk->x = $pk->y = $pk->z = 0;
-        $pk->entityUniqueId = -1;
-
-        if($this->pos instanceof Entity){
-            $pk->entityUniqueId = $this->pos->getId();
-        }else{
-            $pk->x = $this->pos->getFloorX();
-            $pk->y = $this->pos->getFloorY();
-            $pk->z = $this->pos->getFloorZ();
+        $pk->x = $pos->getX();
+        $pk->y = $pos->getY();
+        $pk->z = $pos->getZ();
+        if($eid !== null){
+            $pk->entityUniqueId = $eid;
         }
-        $this->player->dataPacket($pk);
-        $this->inventory->sendContents($this->player);
+        $player->dataPacket($pk);
+        $this->inventory->sendContents($player);
 
         $this->getHandler()->cancel();
     }

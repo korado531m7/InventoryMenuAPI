@@ -16,10 +16,13 @@ class Session{
     private $pos;
     /** @var Block[] */
     private $blocks = [];
+    /** @var int|null */
+    private $eid;
 
-    public function __construct(Player $player){
+    public function __construct(Player $player, ?int $eid){
         $this->player = $player;
-        $this->pos = $player->add(0, 4);
+        $this->pos = $player->floor()->subtract(0, 4);
+        $this->eid = $eid;
     }
 
     /**
@@ -34,6 +37,13 @@ class Session{
      */
     public function getPosition() : Vector3{
         return $this->pos;
+    }
+
+    /**
+     * @return int
+     */
+    public function getEid() : ?int{
+        return $this->eid;
     }
 
     /**
@@ -53,9 +63,9 @@ class Session{
     public function restoreBlock() : void{
         foreach($this->blocks as $block){
             $pk = new UpdateBlockPacket();
-            $pk->x = $block->getFloorX();
-            $pk->y = $block->getFloorY();
-            $pk->z = $block->getFloorZ();
+            $pk->x = $block->getX();
+            $pk->y = $block->getY();
+            $pk->z = $block->getZ();
             $pk->flags = UpdateBlockPacket::FLAG_ALL;
             $pk->blockRuntimeId = $block->getRuntimeId();
             $this->player->dataPacket($pk);

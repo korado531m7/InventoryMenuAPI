@@ -109,17 +109,20 @@ abstract class MenuInventory extends ContainerInventory implements WindowTypes{
 
     }
 
+    public function getEid() : int{
+        return -1;
+    }
+
     abstract public function getBlock() : Block;
 
     public function onOpen(Player $who) : void{
         parent::onOpen($who);
-        $session = new Session($who);
+        $session = new Session($who, $this->getEid());
         InventoryMenu::newSession($who, $session);
-        $holder = $session->getPosition();
-        InventoryMenuUtils::sendFakeBlock($session, $holder, $this->getBlock());
-        $this->placeAdditionalBlocks($session, $holder);
+        InventoryMenuUtils::sendFakeBlock($session, $session->getPosition(), $this->getBlock());
+        $this->placeAdditionalBlocks($session, $session->getPosition());
 
-        InventoryMenu::getPluginBase()->getScheduler()->scheduleDelayedTask(new SendInventoryTask($this, $who, $holder), 3);
+        InventoryMenu::getPluginBase()->getScheduler()->scheduleDelayedTask(new SendInventoryTask($this, $session), 3);
     }
 
     public function onClose(Player $who) : void{
