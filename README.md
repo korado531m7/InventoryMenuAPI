@@ -98,17 +98,17 @@ To call callable when clicked something, use `setClickedCallable`
 ```php
 public function setClickedCallable(Closure $closure) : void;
 
-//Ex: function(Player $player, MenuInventory $inventory, Item $item) : void{
-    $player->sendMessage('Clicked: ' . $item->getName());
+//Ex: function(InventoryClickEvent $event) : void{
+    $player->sendMessage('Clicked: ' . $event->getItem()->getName());
 }
 ```
 
 To call callable when closed inventory, use `setClosedCallable`
 ```php
-public function setClickedCallable(Closure $closure) : void;
+public function setClosedCallable(Closure $closure) : void;
 
-//Ex: function(Player $player, MenuInventory $inventory) : void{
-    $player->sendMessage('Closed');
+//Ex: function(InventoryCloseEvent $event) : void{
+    $event->getPlayer()->sendMessage('Closed');
 }
 ```
 
@@ -130,23 +130,20 @@ $schueduler->scheduleDelayedTask(new ClosureTask(function() use ($inv) : void{
 ```
 ___
 
-**SET RECIPE TO VILLAGER INVENTORY**
+**SET MATERIALS TO VILLAGER INVENTORY**
 
-Since 3.2.0, you can create villager inventory and set recipe to it.
-To make recipe, create TradingRecipe instance and set ingredients to that, then set it to villager inventory with addRecipe().
+Since 3.2.0, you can create villager inventory and set material to it.
+To make recipe, create TradingMaterial instance and set ingredients to that, then set it to villager inventory with addMaterial().
 Here's example:
 ```php
 //use korado531m7\InventoryMenuAPI\inventory\VillagerInventory;
 $villagerInventory = new VillagerInventory();
 
-//use korado531m7\InventoryMenuAPI\utils\TradingRecipe;
-$recipe = new TradingRecipe();
-$recipe->setIngredient(Item::get(Item::DIAMOND));     //at least you must set an ingredient
-//$recipe->setIngredient2(Item::get(Item::TRIDENT)); to set two ingredients, use setIngredient2() function
-$recipe->setResult(Item::get(Item::ENDER_EYE));       //result item can trade from ingredient
-
-$villagerInventory->addRecipe($recipe); //add recipe to villager inventory
-$villagerInventory->send($player); //send to player
+//use korado531m7\InventoryMenuAPI\utils\TradingMaterial;
+$recipe = new TradingMaterial(Item::get(Item::DIAMOND), Item::get(Item::TRIDENT), Item::get(Item::ENDER_EYE));
+//The ingredients are diamond and ender eye. these are turn into trident. (To set one of ingredient, make 3 param empty or null)
+$villagerInventory->addMaterial($recipe); //add material data to villager inventory
+$player->addWindow(villagerInventory); //send to player
 ```
 
 ___
@@ -164,7 +161,7 @@ $player->addWindow(InventoryMenu::createInventory()->setName('Test'));
 ___
 
 ### DEALING WITH EVENT
-This api will call event and you can use that!
+This api will call event and you can use that! This event also will be called in callable
 
 **WHEN CLICK ITEM**
 
@@ -174,9 +171,11 @@ here's the documentation
 ```php
 use korado531m7\InventoryMenuAPI\event\InventoryClickEvent;
 ```
-* `getPlayer()`          - Return Player object who clicked
-* `getItem()`            - Return Item which player clicked
-* `getInventory()`       - Return Inventory
+* `getPlayer()`               - Return Player object who clicked
+* `getItem()`                 - Return Item which player clicked
+* `getInventory()`            - Return Inventory
+* `setCancelled(bool $value)` - To cancel, use this     (from Cancellable)
+* `isCancelled()`             - Check whether cancelled (from Cancellable)
 
 ___
 
@@ -188,11 +187,11 @@ here's the documentation
 ```php
 use korado531m7\InventoryMenuAPI\event\InventoryCloseEvent;
 ```
-* `getPlayer()`                     - Return Player object who clicked
-* `getInventory()`                  - Return Inventory
-* `getWindowId()`                   - Return Window Id
-* `setCancelled(bool $value)`       - To cancel, use this     (from Cancellable)
-* `isCancelled()`                   - Check whether cancelled (from Cancellable)
+* `getPlayer()`               - Return Player object who clicked
+* `getInventory()`            - Return Inventory
+* `getWindowId()`             - Return Window Id
+* `setCancelled(bool $value)` - To cancel, use this     (from Cancellable)
+* `isCancelled()`             - Check whether cancelled (from Cancellable)
 
 ___
 

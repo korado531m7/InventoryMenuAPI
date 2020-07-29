@@ -4,13 +4,14 @@
 namespace korado531m7\InventoryMenuAPI\inventory;
 
 
+use korado531m7\InventoryMenuAPI\event\InventoryClickEvent;
+use korado531m7\InventoryMenuAPI\event\InventoryCloseEvent;
 use korado531m7\InventoryMenuAPI\InventoryMenu;
 use korado531m7\InventoryMenuAPI\task\SendInventoryTask;
 use korado531m7\InventoryMenuAPI\utils\InventoryMenuUtils;
 use korado531m7\InventoryMenuAPI\utils\Session;
 use pocketmine\block\Block;
 use pocketmine\inventory\ContainerInventory;
-use pocketmine\item\Item;
 use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\types\WindowTypes;
@@ -67,7 +68,7 @@ abstract class MenuInventory extends ContainerInventory implements WindowTypes{
      * @param Closure $callable
      */
     final public function setClickedCallable(Closure $callable) : void{
-        Utils::validateCallableSignature(function(Player $player, MenuInventory $inventory, Item $item) : void{}, $callable);
+        Utils::validateCallableSignature(function(InventoryClickEvent $event) : void{}, $callable);
 
         $this->clickedCallable = $callable;
     }
@@ -85,7 +86,7 @@ abstract class MenuInventory extends ContainerInventory implements WindowTypes{
      * @param Closure $callable
      */
     final public function setClosedCallable(Closure $callable) : void{
-        Utils::validateCallableSignature(function(Player $player, MenuInventory $inventory) : void{}, $callable);
+        Utils::validateCallableSignature(function(InventoryCloseEvent $event) : void{}, $callable);
 
         $this->closedCallable = $callable;
     }

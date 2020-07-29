@@ -6,11 +6,11 @@ namespace korado531m7\InventoryMenuAPI\event;
 
 use korado531m7\InventoryMenuAPI\inventory\MenuInventory;
 
+use pocketmine\event\Cancellable;
 use pocketmine\Player;
-use pocketmine\event\plugin\PluginEvent;
 use pocketmine\item\Item;
 
-class InventoryClickEvent extends PluginEvent{
+class InventoryClickEvent extends MenuInventoryEvent implements Cancellable{
     protected $who;
     protected $item;
     protected $inventory;

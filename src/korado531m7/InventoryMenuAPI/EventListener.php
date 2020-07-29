@@ -5,7 +5,6 @@ use korado531m7\InventoryMenuAPI\inventory\MenuInventory;
 use korado531m7\InventoryMenuAPI\event\InventoryClickEvent;
 use korado531m7\InventoryMenuAPI\event\InventoryCloseEvent;
 
-use korado531m7\InventoryMenuAPI\task\CallClosureTask;
 use korado531m7\InventoryMenuAPI\utils\Session;
 use pocketmine\event\inventory\InventoryTransactionEvent;
 use pocketmine\inventory\transaction\action\SlotChangeAction;
@@ -14,6 +13,7 @@ use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\item\Item;
 use pocketmine\network\mcpe\protocol\ContainerClosePacket;
 use pocketmine\plugin\PluginBase;
+use pocketmine\scheduler\ClosureTask;
 
 class EventListener implements Listener{
     /** @var PluginBase */
@@ -32,17 +32,18 @@ class EventListener implements Listener{
                     $item = $action->getSourceItem()->getId() === Item::AIR ? $action->getTargetItem() : $action->getSourceItem();
                     $ev = new InventoryClickEvent($player, $item, $inv);
                     $ev->call();
+                    $callable = $inv->getClickedCallable();
+                    if($callable !== null){
+                        $callable($ev);
+                    }
                     if($inv->isReadonly()){
                         $session = InventoryMenu::getSession($player);
                         if($session instanceof Session){
                             $session->restoreBlock();
                         }
-                        $action->getInventory()->removeItem($item);
-                        $event->setCancelled();
                     }
-                    $callable = $inv->getClickedCallable();
-                    if($callable !== null){
-                        $this->pluginBase->getScheduler()->scheduleDelayedTask(new CallClosureTask($callable, $player, $inv, $item), 3);
+                    if($inv->isReadonly() || $ev->isCancelled()){
+                        $event->setCancelled();
                     }
                 }
             }
@@ -57,12 +58,14 @@ class EventListener implements Listener{
             if($inventory instanceof MenuInventory){
                 $ev = new InventoryCloseEvent($player, $inventory);
                 $ev->call();
-                if($ev->isCancelled()){
-                    $player->addWindow($inventory);
-                }
                 $callable = $inventory->getClosedCallable();
                 if($callable !== null){
-                    $this->pluginBase->getScheduler()->scheduleDelayedTask(new CallClosureTask($callable, $player, $inventory), 3);
+                    $callable($ev);
+                }
+                if($ev->isCancelled()){
+                    $this->pluginBase->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($player, $inventory) : void{
+                        $player->addWindow($inventory);
+                    }), 3);
                 }
             }
         }
