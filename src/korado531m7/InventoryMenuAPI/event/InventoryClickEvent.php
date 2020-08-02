@@ -39,7 +39,10 @@ class InventoryClickEvent extends MenuInventoryEvent implements Cancellable{
     public function getItem() : Item{
         return $this->item;
     }
-    
+
+    /**
+     * @return MenuInventory
+     */
     public function getInventory() : MenuInventory{
         return $this->inventory;
     }

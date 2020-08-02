@@ -40,15 +40,6 @@ abstract class MenuInventory extends ContainerInventory implements WindowTypes{
     }
 
     /**
-     * @deprecated use setTitle
-     *
-     * @param string $name
-     */
-    final public function setName(string $name) : void{
-        $this->title = $name;
-    }
-
-    /**
      * @param bool $readonly
      */
     final public function setReadonly(bool $readonly) : void{

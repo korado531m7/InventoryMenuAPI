@@ -10,14 +10,17 @@ use pocketmine\event\Cancellable;
 class InventoryCloseEvent extends MenuInventoryEvent implements Cancellable{
     protected $who;
     protected $inventory;
-    
+    protected $windowId;
+
     /**
-     * @param Player            $who
+     * @param Player        $who
      * @param MenuInventory $inventory
+     * @param int           $windowId
      */
-    public function __construct(Player $who, MenuInventory $inventory){
+    public function __construct(Player $who, MenuInventory $inventory, int $windowId){
         $this->who = $who;
         $this->inventory = $inventory;
+        $this->windowId = $windowId;
     }
 
     /**
@@ -32,5 +35,12 @@ class InventoryCloseEvent extends MenuInventoryEvent implements Cancellable{
      */
     public function getInventory() : MenuInventory{
         return $this->inventory;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWindowId(){
+        return $this->windowId;
     }
 }

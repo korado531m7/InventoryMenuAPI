@@ -44,6 +44,7 @@ class EventListener implements Listener{
                     }
                     if($inv->isReadonly() || $ev->isCancelled()){
                         $event->setCancelled();
+                        $player->getCursorInventory()->setItem(0, Item::get(Item::AIR));
                     }
                 }
             }
@@ -56,7 +57,7 @@ class EventListener implements Listener{
         if($pk instanceof ContainerClosePacket){
             $inventory = $player->getWindow($pk->windowId);
             if($inventory instanceof MenuInventory){
-                $ev = new InventoryCloseEvent($player, $inventory);
+                $ev = new InventoryCloseEvent($player, $inventory, $pk->windowId);
                 $ev->call();
                 $callable = $inventory->getClosedCallable();
                 if($callable !== null){
