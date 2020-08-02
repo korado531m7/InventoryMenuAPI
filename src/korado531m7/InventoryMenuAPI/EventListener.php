@@ -44,7 +44,7 @@ class EventListener implements Listener{
                     }
                     if($inv->isReadonly() || $ev->isCancelled()){
                         $event->setCancelled();
-                        $player->getCursorInventory()->setItem(0, Item::get(Item::AIR));
+                        $player->getCursorInventory()->clearAll();
                     }
                 }
             }
