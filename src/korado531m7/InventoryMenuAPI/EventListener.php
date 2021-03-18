@@ -10,7 +10,6 @@ use korado531m7\InventoryMenuAPI\event\InventoryCloseEvent;
 use korado531m7\InventoryMenuAPI\utils\Session;
 use pocketmine\event\Listener;
 use pocketmine\event\server\DataPacketReceiveEvent;
-use pocketmine\item\Item;
 use pocketmine\network\mcpe\protocol\ContainerClosePacket;
 use pocketmine\network\mcpe\protocol\InventoryTransactionPacket;
 use pocketmine\network\mcpe\protocol\types\NetworkInventoryAction;
@@ -65,8 +64,9 @@ class EventListener implements Listener{
                                 }
                             }
                             if($inv->isReadonly() || $ev->isCancelled()){
-                                $inv->setItem($action->inventorySlot, $item);
-                                $player->getCursorInventory()->setItem(0, Item::get(Item::AIR));
+                                $item->setCount(0);
+                                $player->getCursorInventory()->setItem(0, $player->getCursorInventory()->getItem(0));
+                                // Refresh item cache instead of Inventory -> sendContents because it doesn't work on windows10
                             }
                         }
                     }

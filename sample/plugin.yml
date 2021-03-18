@@ -1,0 +1,6 @@
+name: InventoryMenuTest
+api: 3.9.0
+main: korado531m7\InventoryMenuTest\InventoryMenuTest
+version: 1.1.2
+author: korado531m7
+softdepend: [InventoryMenuAPI]
